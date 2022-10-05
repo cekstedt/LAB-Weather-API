@@ -54,7 +54,7 @@ app.post("/", function(req, res) {
         res.write("</body>");
         res.send();
       } else {
-        res.json(data);
+        res.json(weatherData);
       }
     });
   });
