@@ -14,7 +14,7 @@ app.get("/", function(req, res) {
 });
 
 app.post("/", function(req, res) {
-  let proxyServer = process.env.HTTPS_PROXY;
+  let proxyServer = process.env.HTTPS_PROXY_NOTREAL;
   let appid = process.env.API_KEY;
   let apiEndpoint = "api.openweathermap.org";
   let query = req.body.cityName;
@@ -27,6 +27,8 @@ app.post("/", function(req, res) {
     method: "GET"
   };
 
+  console.log({ proxyServer: proxyServer });
+
   if (proxyServer) {
     options.agent = new HttpsProxyAgent(proxyServer);
   }
@@ -34,18 +36,26 @@ app.post("/", function(req, res) {
   https.get(options, function(response) {
     response.on("data", function(data) {
       let weatherData = JSON.parse(data);
-      let temp = weatherData.main.temp;
-      let desc = weatherData.weather[0].description;
-      let icon = weatherData.weather[0].icon;
-      let imgURL = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
-      res.write('<head><meta charset="utf-8"></head><body>');
-      res.write("<p>The weather is currently " + desc + ".</p>");
-      res.write(
-        "<h1>The temperature in " + query + " is " + temp + "° Farenheit.</h1>"
-      );
-      res.write('<img src="' + imgURL + '" alt="' + desc + '">');
-      res.write("</body>");
-      res.send();
+      if (data.temp) {
+        let temp = weatherData.main.temp;
+        let desc = weatherData.weather[0].description;
+        let icon = weatherData.weather[0].icon;
+        let imgURL = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
+        res.write('<head><meta charset="utf-8"></head><body>');
+        res.write("<p>The weather is currently " + desc + ".</p>");
+        res.write(
+          "<h1>The temperature in " +
+            query +
+            " is " +
+            temp +
+            "° Farenheit.</h1>"
+        );
+        res.write('<img src="' + imgURL + '" alt="' + desc + '">');
+        res.write("</body>");
+        res.send();
+      } else {
+        res.json(data);
+      }
     });
   });
 });
