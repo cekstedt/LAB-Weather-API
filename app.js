@@ -7,7 +7,7 @@ require("dotenv").config();
 const app = express();
 const port = 3000;
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", function(req, res) {
   res.sendFile(__dirname + "/index.html");
@@ -18,14 +18,18 @@ app.post("/", function(req, res) {
   let appid = process.env.API_KEY;
   let apiEndpoint = "api.openweathermap.org";
   let query = req.body.cityName;
-  let apiPath = "/data/2.5/weather?q=" + query + "&units=imperial&appid=" + appid;
+  let apiPath =
+    "/data/2.5/weather?q=" + query + "&units=imperial&appid=" + appid;
 
   let options = {
-    agent: new HttpsProxyAgent(proxyServer),
     host: apiEndpoint,
     path: apiPath,
     method: "GET"
   };
+
+  if (proxyServer) {
+    options.agent = new HttpsProxyAgent(proxyServer);
+  }
 
   https.get(options, function(response) {
     console.log(response.statusCode);
@@ -38,8 +42,10 @@ app.post("/", function(req, res) {
       let imgURL = "http://openweathermap.org/img/wn/" + icon + "@2x.png";
       res.write('<head><meta charset="utf-8"></head><body>');
       res.write("<p>The weather is currently " + desc + ".</p>");
-      res.write("<h1>The temperature in " + query + " is " + temp + "° Farenheit.</h1>");
-      res.write('<img src="' + imgURL + '" alt="' + desc + '">')
+      res.write(
+        "<h1>The temperature in " + query + " is " + temp + "° Farenheit.</h1>"
+      );
+      res.write('<img src="' + imgURL + '" alt="' + desc + '">');
       res.write("</body>");
       res.send();
     });
